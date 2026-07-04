@@ -1,6 +1,7 @@
 data/
 output/
 reference/
+old_output/
 __pycache__/
 *.pyc
 *.egg-info/

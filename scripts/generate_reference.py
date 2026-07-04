@@ -25,18 +25,19 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 REF_DIR = ROOT / 'reference'
 
-# 旧リポジトリURL（年次別）
+# 旧リポジトリURL（年次別）。2019-2021は無印リポジトリで3年分を1本にマージ出力する。
+# 各リポジトリは to-degree → convert の2段パイプライン（詳細は各repoのscripts/参照）。
+# 現状の reference/ は旧出力を取り込み済み（--from-dir old_output/ で再取得可）。
 OLD_REPO_URLS = {
-    2019: None,  # URLが判明したら設定
-    2020: None,
-    2021: None,
-    2022: None,
-    2023: None,
-    2024: None,
+    2019: 'https://github.com/shiwaku/npa-traffic-accident-data-converter',
+    2020: 'https://github.com/shiwaku/npa-traffic-accident-data-converter',
+    2021: 'https://github.com/shiwaku/npa-traffic-accident-data-converter',
+    2022: 'https://github.com/shiwaku/npa-traffic-accident-data-2022-converter',
+    2023: 'https://github.com/shiwaku/npa-traffic-accident-data-2023-converter',
+    2024: 'https://github.com/shiwaku/npa-traffic-accident-data-2024-converter',
 }
-# TODO: 旧リポジトリのGitHub URLが確定したらここに設定してください
-# 例:
-# OLD_REPO_URLS[2024] = 'https://github.com/xxx/npa-2024-converter'
+# 注: --clone は run.sh 前提の未実装パス。旧出力は old_output/ に保存済みのため
+#     `python scripts/generate_reference.py --from-dir old_output --year <年>` を推奨。
 
 
 def from_dir(src_dir, year):
