@@ -30,17 +30,33 @@ KNOWN_YEARS = list(range(2019, 2025))
 
 # 意図的に旧出力と異なることが確認済みの差異
 # 形式: {year: [(column, old_value, new_value, reason), ...]}
+# 旧ツール（shiwaku/npa-traffic-accident-data-*-converter）出力との全件比較で確定した
+# 意図的差異。差異が発生するのは 2022年のみ（2019-2021・2023・2024は共通列で完全一致）。
+# いずれも「旧ツールのコード辞書の欠落・ラベル誤りを、新ツールが公式コード表に準拠して補正」した方向。
 KNOWN_DIFFS = {
     2022: [
-        # 2022年の旧スクリプトは当事者種別'36'を'一般原付自転車'とコードしていた
-        # 公式xlsxでは'二輪車－一般原付自転車'が正しいため修正済み
-        ('当事者種別（当事者A）', '一般原付自転車', '二輪車－一般原付自転車', '旧スクリプトのコード誤りを修正'),
-        ('当事者種別（当事者B）', '一般原付自転車', '二輪車－一般原付自転車', '旧スクリプトのコード誤りを修正'),
+        # 旧2022ツールは車道幅員コード12/13/16を辞書に持たず空値だった。新は公式コード表で補完。
+        # 新値は交差点系ラベル3種（コード12→中-小 / 16→大-中 / 13→大-小）。空→非空をまとめて許容。
+        ('車道幅員', '', '*', '旧辞書のコード12/13/16欠落を公式準拠で補完（空→交差点系ラベル）'),
+        # 旧2022ツールはコード36に'一般'を誤付与。公式2022では'二輪車－原付自転車'。
+        ('当事者種別（当事者A）', '二輪車－一般原付自転車', '二輪車－原付自転車', '旧ラベル誤りを公式2022準拠に修正'),
+        ('当事者種別（当事者B）', '二輪車－一般原付自転車', '二輪車－原付自転車', '旧ラベル誤りを公式2022準拠に修正'),
+        # 旧2022ツールは車両形状コード31を辞書に持たず空値だった。新は補完。
+        ('車両形状（当事者A）', '', '立ち乗り型電動車', '旧辞書のコード31欠落を公式準拠で補完'),
+        ('車両形状（当事者B）', '', '立ち乗り型電動車', '旧辞書のコード31欠落を公式準拠で補完'),
     ],
-    2023: [
-        ('当事者種別（当事者A）', '一般原付自転車', '二輪車－一般原付自転車', '旧スクリプトのコード誤りを修正'),
-        ('当事者種別（当事者B）', '一般原付自転車', '二輪車－一般原付自転車', '旧スクリプトのコード誤りを修正'),
-    ],
+}
+
+# 2019-2021: 旧ツールは60列、新ツールは72列（全年統一スキーマ）。
+# 以下12列は新ツールにのみ存在し、2019-2021では空値（元データに列自体が存在しない）。
+# 値ではなく列構成の差なので、比較時は「許容済みの構造差」として扱い共通列のみ比較する。
+KNOWN_NEW_ONLY_COLS = {
+    '日の出時刻　　時', '日の出時刻　　分',
+    '日の入り時刻　　時', '日の入り時刻　　分',
+    'オートマチック車（当事者A）', 'オートマチック車（当事者B）',
+    'サポカー（当事者A）', 'サポカー（当事者B）',
+    '認知機能検査経過日数（当事者A）', '認知機能検査経過日数（当事者B）',
+    '運転練習の方法（当事者A）', '運転練習の方法（当事者B）',
 }
 
 
@@ -74,13 +90,17 @@ def check_year(year, verbose=False, ignore_known=False):
     ref_cols = set(ref_df.columns)
     out_cols = set(out_df.columns)
     only_ref = ref_cols - out_cols
-    only_out = out_cols - ref_cols
+    # 新ツールのみの列のうち、許容済みの構造差（2019-2021の追加12列）は除外
+    allowed_new_only = (out_cols - ref_cols) & KNOWN_NEW_ONLY_COLS
+    only_out = (out_cols - ref_cols) - KNOWN_NEW_ONLY_COLS
     if only_ref or only_out:
         if only_ref:
             print(f'  ❌ {year}: 参照のみのカラム: {sorted(only_ref)}')
         if only_out:
             print(f'  ❌ {year}: 出力のみのカラム: {sorted(only_out)}')
         return False
+    if allowed_new_only:
+        print(f'  ℹ️ {year}: 新ツールのみの構造列 {len(allowed_new_only)}件（許容済み・共通列のみ比較）')
 
     # 共通カラムでの全件比較
     common_cols = [c for c in ref_df.columns if c in out_cols]
@@ -102,7 +122,11 @@ def check_year(year, verbose=False, ignore_known=False):
         for (known_col, old_v), new_v in known_pairs.items():
             if col != known_col:
                 continue
-            known_mask = (ref_df[col] == old_v) & (out_df[col] == new_v)
+            if new_v == '*':
+                # ワイルドカード: 旧=old_v かつ 新が非空（補完）を一括許容
+                known_mask = (ref_df[col] == old_v) & (out_df[col] != '')
+            else:
+                known_mask = (ref_df[col] == old_v) & (out_df[col] == new_v)
             actual_diffs = actual_diffs & ~known_mask
 
         if actual_diffs.any():
