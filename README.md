@@ -1,6 +1,6 @@
 # 警察庁交通事故統計オープンデータ コンバーター
 
-警察庁が公開する[交通事故統計情報のオープンデータ](https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html)（本票CSV）をコード値から人間可読なコード値をラベルに変換し、緯度経度を10進数に変換するツールです。
+警察庁が公開する[交通事故統計情報のオープンデータ](https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html)（本票CSV）をコード値から人間可読なラベルに変換し、緯度経度を10進数に変換するツールです。
 
 2019〜2024年（令和元〜6年）対応。2025年以降のデータ追加にも対応した設計になっています。
 
