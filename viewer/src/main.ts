@@ -41,30 +41,7 @@ const map = new maplibregl.Map({
   attributionControl: false,
 });
 
-map.addControl(new maplibregl.NavigationControl(), "top-right");
-map.addControl(new maplibregl.FullscreenControl(), "top-right");
-map.addControl(
-  new maplibregl.GeolocateControl({
-    positionOptions: { enableHighAccuracy: false },
-    fitBoundsOptions: { maxZoom: 18 },
-    trackUserLocation: true,
-    showUserLocation: true,
-  }),
-  "top-right"
-);
-map.addControl(
-  new maplibregl.ScaleControl({ maxWidth: 200, unit: "metric" }),
-  "bottom-left"
-);
-map.addControl(
-  new maplibregl.AttributionControl({
-    compact: true,
-    customAttribution:
-      '<a href="https://github.com/shiwaku/npa-traffic-accident-converter" target="_blank">GitHub</a>',
-  })
-);
-
-// ジオコーダー（国土地理院 地名検索API）
+// ジオコーダー（国土地理院 地名検索API）: 右上の最上段に配置
 const geocoderApi = {
   forwardGeocode: async (
     config: MaplibreGeocoderApiConfig
@@ -97,6 +74,29 @@ const geocoderApi = {
   },
 };
 map.addControl(new MaplibreGeocoder(geocoderApi, { maplibregl }), "top-right");
+
+map.addControl(new maplibregl.NavigationControl(), "top-right");
+map.addControl(new maplibregl.FullscreenControl(), "top-right");
+map.addControl(
+  new maplibregl.GeolocateControl({
+    positionOptions: { enableHighAccuracy: false },
+    fitBoundsOptions: { maxZoom: 18 },
+    trackUserLocation: true,
+    showUserLocation: true,
+  }),
+  "top-right"
+);
+map.addControl(
+  new maplibregl.ScaleControl({ maxWidth: 200, unit: "metric" }),
+  "bottom-left"
+);
+map.addControl(
+  new maplibregl.AttributionControl({
+    compact: true,
+    customAttribution:
+      '<a href="https://github.com/shiwaku/npa-traffic-accident-converter" target="_blank">GitHub</a>',
+  })
+);
 
 // TerraDraw（作図ツール）
 map.addControl(
