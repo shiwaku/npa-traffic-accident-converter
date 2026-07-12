@@ -339,19 +339,30 @@ function setHighlight(coords: [number, number] | null): void {
 }
 
 // ---- ポップアップ ----
-// ポップアップは1つを使い回す。closeOnClick を無効にして、
-// 別の点を連続クリックしたときに「前のポップアップの close」が
-// 「新しいハイライトの設定」より後に走ってハイライトを消してしまう
-// レースを防ぐ。選択解除は空きスペースのクリックと×ボタンで行う。
+// クリックごとにポップアップを新規生成する（使い回すと Popup.addTo() が内部で
+// remove() を呼んで close イベントを発火し、直前に設定したハイライトを消して
+// しまうため）。closeOnClick は無効にし、選択解除は「空きスペースのクリック」と
+// 「×ボタン」で明示的に行う。前のポップアップを閉じる際は、その close リスナで
+// 新しいハイライトが消えないよう、先にリスナを外してから remove する。
 let selectedPopup: maplibregl.Popup | null = null;
 
-function clearSelection(): void {
+// ×ボタン等でポップアップが閉じたときにハイライトも消すためのリスナ
+function onPopupClose(): void {
+  selectedPopup = null;
   setHighlight(null);
-  if (selectedPopup) {
-    const p = selectedPopup;
-    selectedPopup = null;
-    p.remove();
-  }
+}
+
+function removeSelectedPopup(): void {
+  if (!selectedPopup) return;
+  const p = selectedPopup;
+  selectedPopup = null;
+  p.off("close", onPopupClose); // remove() による close で onPopupClose を走らせない
+  p.remove();
+}
+
+function clearSelection(): void {
+  removeSelectedPopup();
+  setHighlight(null);
 }
 
 map.on(
@@ -361,19 +372,14 @@ map.on(
     if (!e.features || e.features.length === 0) return;
     const feature = e.features[0];
     const [lng, lat] = (feature.geometry as GeoJSON.Point).coordinates;
+    // 前の選択を破棄してから新しいハイライト・ポップアップを設定
+    removeSelectedPopup();
     setHighlight([lng, lat]);
-    if (!selectedPopup) {
-      selectedPopup = new maplibregl.Popup({ maxWidth: "360px", closeOnClick: false });
-      // ×ボタンで閉じたらハイライトも消す
-      selectedPopup.on("close", () => {
-        selectedPopup = null;
-        setHighlight(null);
-      });
-    }
-    selectedPopup
+    selectedPopup = new maplibregl.Popup({ maxWidth: "360px", closeOnClick: false })
       .setLngLat([lng, lat])
       .setHTML(buildPopupHtml(feature.properties as Record<string, unknown>, lng, lat))
       .addTo(map);
+    selectedPopup.on("close", onPopupClose);
   }
 );
 
