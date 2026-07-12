@@ -339,6 +339,21 @@ function setHighlight(coords: [number, number] | null): void {
 }
 
 // ---- ポップアップ ----
+// ポップアップは1つを使い回す。closeOnClick を無効にして、
+// 別の点を連続クリックしたときに「前のポップアップの close」が
+// 「新しいハイライトの設定」より後に走ってハイライトを消してしまう
+// レースを防ぐ。選択解除は空きスペースのクリックと×ボタンで行う。
+let selectedPopup: maplibregl.Popup | null = null;
+
+function clearSelection(): void {
+  setHighlight(null);
+  if (selectedPopup) {
+    const p = selectedPopup;
+    selectedPopup = null;
+    p.remove();
+  }
+}
+
 map.on(
   "click",
   "jiko-points",
@@ -347,14 +362,28 @@ map.on(
     const feature = e.features[0];
     const [lng, lat] = (feature.geometry as GeoJSON.Point).coordinates;
     setHighlight([lng, lat]);
-    const popup = new maplibregl.Popup({ maxWidth: "360px" })
+    if (!selectedPopup) {
+      selectedPopup = new maplibregl.Popup({ maxWidth: "360px", closeOnClick: false });
+      // ×ボタンで閉じたらハイライトも消す
+      selectedPopup.on("close", () => {
+        selectedPopup = null;
+        setHighlight(null);
+      });
+    }
+    selectedPopup
       .setLngLat([lng, lat])
       .setHTML(buildPopupHtml(feature.properties as Record<string, unknown>, lng, lat))
       .addTo(map);
-    // ポップアップを閉じたらハイライトを消す
-    popup.on("close", () => setHighlight(null));
   }
 );
+
+// 事故ポイント以外をクリックしたら選択を解除する。
+// この一般クリックハンドラは点の有無を自前で判定するため、レイヤ用ハンドラとの
+// 実行順に依存しない（点をクリックした場合はここでは何もしない）。
+map.on("click", (e) => {
+  const hit = map.queryRenderedFeatures(e.point, { layers: ["jiko-points"] });
+  if (hit.length === 0) clearSelection();
+});
 map.on("mouseenter", "jiko-points", () => {
   map.getCanvas().style.cursor = "pointer";
 });
