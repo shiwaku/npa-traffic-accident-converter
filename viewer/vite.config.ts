@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -58,7 +59,45 @@ function serveConverterOutput(): Plugin {
 
 export default defineConfig({
   base: "./",
-  plugins: [serveConverterOutput()],
+  plugins: [
+    serveConverterOutput(),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: "auto",
+      // 相対 base（"./"）でサブパス配信（GitHub Pages）に対応
+      includeAssets: ["favicon.svg", "icons/apple-touch-icon.png"],
+      manifest: {
+        name: "交通事故統計マップ 2019–2024",
+        short_name: "事故マップ",
+        description:
+          "警察庁 交通事故統計オープンデータ（2019〜2024年）を地図で閲覧できるビューワ",
+        lang: "ja",
+        dir: "ltr",
+        theme_color: "#ffffff",
+        background_color: "#f8f9fb",
+        display: "standalone",
+        orientation: "any",
+        categories: ["maps", "navigation", "utilities"],
+        icons: [
+          { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        ],
+      },
+      workbox: {
+        // アプリシェル（ローカルビルド成果物）のみプリキャッシュ。
+        // 650MB の PMTiles や地理院タイル（外部・巨大）はキャッシュしない。
+        globPatterns: ["**/*.{js,css,html,json,svg,png,woff2}"],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        navigateFallback: "index.html",
+        cleanupOutdatedCaches: true,
+      },
+      devOptions: {
+        // 開発時は SW を無効化（/data ミドルウェアや HMR との干渉を防ぐ）
+        enabled: false,
+      },
+    }),
+  ],
   server: {
     // WSL2 から /mnt/c 上のファイルを扱う場合 inotify が効かないため、
     // ポーリングでファイル変更を検知する
