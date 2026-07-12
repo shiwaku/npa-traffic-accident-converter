@@ -41,6 +41,11 @@ const map = new maplibregl.Map({
   attributionControl: false,
 });
 
+// 開発時のみ、デバッグ・E2E検証用に map インスタンスを公開
+if (import.meta.env.DEV) {
+  (window as unknown as { __map: maplibregl.Map }).__map = map;
+}
+
 // ジオコーダー（国土地理院 地名検索API）: 右上の最上段に配置
 const geocoderApi = {
   forwardGeocode: async (
@@ -130,9 +135,10 @@ const filterState: FilterState = {
 const JIKO_LAYERS = ["jiko-heat", "jiko-points", "jiko-labels"] as const;
 
 function applyFilter(): void {
+  if (!map.isStyleLoaded()) return;
   const filter = buildFilter(filterState);
   for (const id of JIKO_LAYERS) {
-    map.setFilter(id, filter);
+    if (map.getLayer(id)) map.setFilter(id, filter);
   }
 }
 
@@ -240,6 +246,45 @@ map.on("load", () => {
     },
   });
 
+  // 選択中の事故ポイントのハイライト（クリックした点にリングを表示）
+  map.addSource("selected", {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] },
+  });
+  map.addLayer({
+    id: "jiko-highlight-glow",
+    type: "circle",
+    source: "selected",
+    paint: {
+      "circle-color": "#ffab00",
+      "circle-opacity": 0.25,
+      "circle-radius": [
+        "interpolate", ["linear"], ["zoom"],
+        4, 10,
+        8, 14,
+        12, 18,
+        16, 24,
+      ],
+    },
+  });
+  map.addLayer({
+    id: "jiko-highlight-ring",
+    type: "circle",
+    source: "selected",
+    paint: {
+      "circle-color": "rgba(0, 0, 0, 0)",
+      "circle-radius": [
+        "interpolate", ["linear"], ["zoom"],
+        4, 6,
+        8, 9,
+        12, 12,
+        16, 16,
+      ],
+      "circle-stroke-color": "#ff9500",
+      "circle-stroke-width": 3,
+    },
+  });
+
   // 発生日ラベル（高ズームのみ）
   map.addLayer({
     id: "jiko-labels",
@@ -273,6 +318,26 @@ map.on("load", () => {
   applyFilter();
 });
 
+// ---- 選択ハイライト ----
+const EMPTY_FC: GeoJSON.FeatureCollection = {
+  type: "FeatureCollection",
+  features: [],
+};
+function setHighlight(coords: [number, number] | null): void {
+  const src = map.getSource("selected") as maplibregl.GeoJSONSource | undefined;
+  if (!src) return;
+  src.setData(
+    coords
+      ? {
+          type: "FeatureCollection",
+          features: [
+            { type: "Feature", geometry: { type: "Point", coordinates: coords }, properties: {} },
+          ],
+        }
+      : EMPTY_FC
+  );
+}
+
 // ---- ポップアップ ----
 map.on(
   "click",
@@ -281,10 +346,13 @@ map.on(
     if (!e.features || e.features.length === 0) return;
     const feature = e.features[0];
     const [lng, lat] = (feature.geometry as GeoJSON.Point).coordinates;
-    new maplibregl.Popup({ maxWidth: "360px" })
-      .setLngLat(e.lngLat)
+    setHighlight([lng, lat]);
+    const popup = new maplibregl.Popup({ maxWidth: "360px" })
+      .setLngLat([lng, lat])
       .setHTML(buildPopupHtml(feature.properties as Record<string, unknown>, lng, lat))
       .addTo(map);
+    // ポップアップを閉じたらハイライトを消す
+    popup.on("close", () => setHighlight(null));
   }
 );
 map.on("mouseenter", "jiko-points", () => {
@@ -361,7 +429,7 @@ photoOpacity.addEventListener("input", () => {
 // 画面内の描画済み件数（タイル間引きがあるため目安）
 const statsEl = document.getElementById("stats")!;
 map.on("idle", () => {
-  if (!map.getLayer("jiko-points")) return;
+  if (!map.isStyleLoaded() || !map.getLayer("jiko-points")) return;
   if (map.getLayoutProperty("jiko-points", "visibility") === "none") {
     statsEl.textContent = "ヒートマップ表示中";
     return;
