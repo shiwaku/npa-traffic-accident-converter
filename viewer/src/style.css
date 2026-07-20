@@ -271,30 +271,33 @@ body,
 
 /* 吹き出し（tip）が接する角だけ丸みを消し、tip がポップアップに自然に繋がるようにする。
    MapLibre はアンカー位置に応じて .maplibregl-popup-anchor-* を付与する。
-   border-radius の順は 左上 / 右上 / 右下 / 左下。 */
-.maplibregl-popup-anchor-top .maplibregl-popup-content {
-  border-radius: 0 0 12px 12px;
-}
-.maplibregl-popup-anchor-bottom .maplibregl-popup-content {
-  border-radius: 12px 12px 0 0;
-}
-.maplibregl-popup-anchor-left .maplibregl-popup-content {
-  border-radius: 0 12px 12px 0;
-}
-.maplibregl-popup-anchor-right .maplibregl-popup-content {
-  border-radius: 12px 0 0 12px;
-}
-.maplibregl-popup-anchor-top-left .maplibregl-popup-content {
-  border-radius: 0 12px 12px 12px;
-}
-.maplibregl-popup-anchor-top-right .maplibregl-popup-content {
-  border-radius: 12px 0 12px 12px;
-}
-.maplibregl-popup-anchor-bottom-left .maplibregl-popup-content {
-  border-radius: 12px 12px 12px 0;
-}
-.maplibregl-popup-anchor-bottom-right .maplibregl-popup-content {
-  border-radius: 12px 12px 0 12px;
+   border-radius の順は 左上 / 右上 / 右下 / 左下。
+   スマホは tip 非表示のボトムシート表示なので、このロジックはデスクトップ限定。 */
+@media (min-width: 641px) {
+  .maplibregl-popup-anchor-top .maplibregl-popup-content {
+    border-radius: 0 0 12px 12px;
+  }
+  .maplibregl-popup-anchor-bottom .maplibregl-popup-content {
+    border-radius: 12px 12px 0 0;
+  }
+  .maplibregl-popup-anchor-left .maplibregl-popup-content {
+    border-radius: 0 12px 12px 0;
+  }
+  .maplibregl-popup-anchor-right .maplibregl-popup-content {
+    border-radius: 12px 0 0 12px;
+  }
+  .maplibregl-popup-anchor-top-left .maplibregl-popup-content {
+    border-radius: 0 12px 12px 12px;
+  }
+  .maplibregl-popup-anchor-top-right .maplibregl-popup-content {
+    border-radius: 12px 0 12px 12px;
+  }
+  .maplibregl-popup-anchor-bottom-left .maplibregl-popup-content {
+    border-radius: 12px 12px 12px 0;
+  }
+  .maplibregl-popup-anchor-bottom-right .maplibregl-popup-content {
+    border-radius: 12px 12px 0 12px;
+  }
 }
 
 .maplibregl-popup-close-button {
@@ -434,7 +437,7 @@ body,
   .maplibregl-popup-content {
     width: 100vw !important;
     max-width: 100vw !important;
-    border-radius: 14px 14px 0 0;
+    border-radius: 0;
     /* ホームインジケータ／スケールバー位置を避けて下端に余白を確保 */
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
