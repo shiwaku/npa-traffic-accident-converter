@@ -130,6 +130,7 @@ const filterState: FilterState = {
   years: new Set(["2019", "2020", "2021", "2022", "2023", "2024"]),
   tyuya: new Set(["昼", "夜"]),
   party: "",
+  age: "",
 };
 
 const JIKO_LAYERS = ["jiko-heat", "jiko-points", "jiko-labels"] as const;
@@ -429,6 +430,11 @@ setupChipGroup("filter-tyuya", filterState.tyuya);
 
 document.getElementById("filter-party")!.addEventListener("change", (e) => {
   filterState.party = (e.target as HTMLSelectElement).value;
+  applyFilter();
+});
+
+document.getElementById("filter-age")!.addEventListener("change", (e) => {
+  filterState.age = (e.target as HTMLSelectElement).value;
   applyFilter();
 });
 

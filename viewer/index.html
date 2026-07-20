@@ -63,7 +63,7 @@
         </section>
 
         <section class="panel-section">
-          <h2>昼夜</h2>
+          <h2>昼夜<span class="section-note">（昼＝日の出〜日の入り／夜＝日の入り〜日の出）</span></h2>
           <div class="chip-group" id="filter-tyuya">
             <button class="chip active" data-value="昼" type="button">☀ 昼</button>
             <button class="chip active" data-value="夜" type="button">☾ 夜</button>
@@ -80,6 +80,21 @@
             <option value="kickboard">特定小型原付（電動キックボード等）</option>
             <option value="passenger">乗用車</option>
             <option value="cargo">貨物車</option>
+          </select>
+        </section>
+
+        <section class="panel-section">
+          <h2>年齢階層<span class="section-note">（当事者いずれかが該当）</span></h2>
+          <select id="filter-age" class="panel-select">
+            <option value="" selected>すべて</option>
+            <option value="0～24歳">0～24歳</option>
+            <option value="25～34歳">25～34歳</option>
+            <option value="35～44歳">35～44歳</option>
+            <option value="45～54歳">45～54歳</option>
+            <option value="55～64歳">55～64歳</option>
+            <option value="65～74歳">65～74歳</option>
+            <option value="75歳以上">75歳以上</option>
+            <option value="不明">不明</option>
           </select>
         </section>
 
