@@ -5,6 +5,7 @@ export interface FilterState {
   years: Set<string>; // "2019".."2024"
   tyuya: Set<string>; // 昼 / 夜（「昼夜」ラベルの先頭1文字）
   party: string; // 関与当事者カテゴリのキー（"" = すべて）
+  age: string; // 年齢階層ラベル（"" = すべて）。当事者A/Bいずれか該当で表示
 }
 
 const ALL_NAIYOU = ["死亡事故", "負傷事故"];
@@ -67,6 +68,14 @@ export function buildFilter(state: FilterState): ExpressionSpecification {
       "any",
       partyCondition("当事者種別（当事者A）", state.party),
       partyCondition("当事者種別（当事者B）", state.party),
+    ]);
+  }
+
+  if (state.age) {
+    conditions.push([
+      "any",
+      ["==", ["get", "年齢（当事者A）"], state.age],
+      ["==", ["get", "年齢（当事者B）"], state.age],
     ]);
   }
 
