@@ -4,6 +4,40 @@
 
 2019〜2024年（令和元〜6年）対応。2025年以降のデータ追加にも対応した設計になっています。
 
+地図ビューワ: https://shiwaku.github.io/npa-traffic-accident-converter/
+
+---
+
+## 変換済みデータのダウンロード
+
+変換を自分で実行しなくても、生成済みデータを [Releases](../../releases/tag/data-v1) から取得できます。
+
+| ファイル | 形式 | サイズ | 用途 |
+|---|---|---|---|
+| `honhyo_{2019..2024}_converted.csv.gz` | CSV(UTF-8) | 各 17〜22 MB | 単年の集計・分析 |
+| `honhyo_2019-2024_converted.csv.gz` | CSV(UTF-8) | 113 MB | 6年分マージ版（1,895,275件） |
+| `honhyo_2019-2024_converted.parquet` | GeoParquet | 122 MB | QGIS表示・分析 |
+| `honhyo_2019-2024_converted.pmtiles` | PMTiles | 620 MB | MapLibre等でのタイル配信 |
+| `SHA256SUMS.txt` | — | — | 整合性検証用 |
+
+```bash
+# 全ファイル
+gh release download data-v1
+
+# 個別
+gh release download data-v1 -p 'honhyo_2024_converted.csv.gz'
+
+# 検証
+sha256sum -c SHA256SUMS.txt
+```
+
+GeoJSON（マージ版6.1GB）は巨大なため配布対象外です。必要な場合は下記の手順で生成してください。
+
+> [!IMPORTANT]
+> GitHub のリリースアセットは CORSヘッダを返さないため、ブラウザから直接PMTilesソースに指定すると遮断されます。Web地図で配信する場合は CORS 対応のホスト（S3 / Cloudflare R2 等）に置き直してください。
+
+収録件数・生成条件・既知の制約は[リリースノート](../../releases/tag/data-v1)に記載しています。
+
 ---
 
 ## セットアップ
@@ -48,6 +82,19 @@ python -m converter --all --merge
 ```
 
 出力先: `output/honhyo_{year}_converted.csv`（UTF-8）
+
+### 3. 地理空間フォーマットへの変換（任意）
+
+マージCSVから GeoParquet / GeoJSON / PMTiles を生成します。`geopandas`・`ogr2ogr`（GDAL）・`tippecanoe` が必要です。
+
+```bash
+python -m converter --all --merge
+./export_geo.sh
+```
+
+出力先: `output/honhyo_2019-2024_converted.{parquet,geojson,pmtiles}`
+
+PMTiles の source-layer 名は `honhyo_20192024_converted`（tippecanoe がハイフンを除去した名前）、ズームは 0–14 です。
 
 ---
 
@@ -248,3 +295,11 @@ python scripts/run_all_checks.py --all
 ## 2025年データの追加
 
 2025年のデータが公開されたら、[ADDING_NEW_YEAR.md](ADDING_NEW_YEAR.md) の手順に従ってください。
+
+---
+
+## 出典・ライセンス
+
+変換済みデータは、警察庁「[交通事故統計情報のオープンデータ](https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html)」（本票CSV、2019〜2024年）を**加工して作成**したものです。元データの利用条件は警察庁の[利用規約](https://www.npa.go.jp/rules/index.html)（公共データ利用規約 第1.0版／PDL1.0 準拠）に従います。利用時は出典の表示および編集・加工した旨の表示が必要です。あたかも国が作成したかのような態様での公表・利用はできません。
+
+コンバーターのソースコードは MIT License（[LICENSE](LICENSE)）。
