@@ -59,6 +59,8 @@ function serveConverterOutput(): Plugin {
 
 export default defineConfig({
   base: "./",
+  // main.ts が最上位 await で背景スタイルを読む
+  build: { target: "es2022" },
   plugins: [
     serveConverterOutput(),
     VitePWA({
@@ -67,10 +69,10 @@ export default defineConfig({
       // 相対 base（"./"）でサブパス配信（GitHub Pages）に対応
       includeAssets: ["favicon.svg", "icons/apple-touch-icon.png"],
       manifest: {
-        name: "交通事故統計マップ 2019–2024",
+        name: "交通事故統計マップ 2019–2025",
         short_name: "事故マップ",
         description:
-          "警察庁 交通事故統計オープンデータ（2019〜2024年）を地図で閲覧できるビューワ",
+          "警察庁 交通事故統計オープンデータ（2019〜2025年）を地図で閲覧できるビューワ",
         lang: "ja",
         dir: "ltr",
         theme_color: "#ffffff",

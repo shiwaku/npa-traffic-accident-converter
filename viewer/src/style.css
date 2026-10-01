@@ -4,11 +4,40 @@
   --color-text: #1f2937;
   --color-text-sub: #6b7280;
   --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.2);
+  --color-link: var(--color-injury);
   --panel-bg: rgba(255, 255, 255, 0.88);
+  --surface-solid: #ffffff;
+  --control-bg: rgba(255, 255, 255, 0.7);
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --hover: rgba(0, 0, 0, 0.06);
+  --track: rgba(0, 0, 0, 0.05);
+  --chip-active: #374151;
+  --chip-active-ink: #ffffff;
   --radius: 14px;
   --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   --font: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "BIZ UDPGothic",
     Meiryo, system-ui, sans-serif;
+  color-scheme: light;
+}
+
+/* ダークテーマ（theme.ts が <html data-theme="dark"> を付ける） */
+:root[data-theme="dark"] {
+  --color-text: #f2f4f7;
+  --color-text-sub: #b3b9c4;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.24);
+  --color-link: #7aa7ff;
+  --panel-bg: rgba(24, 26, 30, 0.9);
+  --surface-solid: #1b1e24;
+  --control-bg: rgba(255, 255, 255, 0.04);
+  --input-bg: #23262d;
+  --hover: rgba(255, 255, 255, 0.07);
+  --track: rgba(255, 255, 255, 0.08);
+  --chip-active: #e5e7eb;
+  --chip-active-ink: #111318;
+  --shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.6), 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
 }
 
 * {
@@ -42,22 +71,24 @@ body,
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  transition: transform 0.25s ease, opacity 0.25s ease;
   overflow: hidden;
 }
 
-#panel.closed {
-  transform: translateX(calc(-100% - 24px));
-  opacity: 0;
-  pointer-events: none;
+/* 畳むとヘッダだけ残す */
+#panel.collapsed .panel-body {
+  display: none;
+}
+
+#panel.collapsed .panel-header {
+  border-bottom: 0;
 }
 
 .panel-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 14px 16px 10px;
+  padding: 12px 12px 10px 16px;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -73,19 +104,27 @@ body,
   margin-top: 2px;
 }
 
-#panel-close {
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  line-height: 1;
-  color: var(--color-text-sub);
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
+.head-actions {
+  display: flex;
+  gap: 4px;
+  flex: none;
 }
 
-#panel-close:hover {
-  background: rgba(0, 0, 0, 0.06);
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--hover);
 }
 
 .panel-body {
@@ -121,7 +160,7 @@ body,
 
 .chip {
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--control-bg);
   color: var(--color-text-sub);
   font-family: var(--font);
   font-size: 12px;
@@ -132,23 +171,25 @@ body,
 }
 
 .chip:hover {
-  border-color: rgba(0, 0, 0, 0.2);
+  border-color: var(--color-border-strong);
 }
 
 .chip.active {
-  background: #374151;
-  border-color: #374151;
-  color: #fff;
+  background: var(--chip-active);
+  border-color: var(--chip-active);
+  color: var(--chip-active-ink);
 }
 
 .chip-fatal.active {
   background: var(--color-fatal);
   border-color: var(--color-fatal);
+  color: #fff;
 }
 
 .chip-injury.active {
   background: var(--color-injury);
   border-color: var(--color-injury);
+  color: #fff;
 }
 
 /* セレクト */
@@ -159,14 +200,14 @@ body,
   padding: 7px 10px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--input-bg);
   color: var(--color-text);
 }
 
 /* セグメントコントロール */
 .segmented {
   display: flex;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--track);
   border-radius: 9px;
   padding: 3px;
   gap: 3px;
@@ -186,7 +227,7 @@ body,
 }
 
 .segment.active {
-  background: #fff;
+  background: var(--surface-solid);
   color: var(--color-text);
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
@@ -234,32 +275,73 @@ body,
 }
 
 .panel-footer a {
-  color: var(--color-injury);
+  color: var(--color-link);
 }
 
-/* パネル開閉ボタン */
-#panel-toggle {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 9;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+/* ---- 地図コントロールのテーマ対応 ---- */
+.maplibregl-ctrl-group {
+  background: var(--surface-solid);
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top-color: var(--color-border);
+}
+
+.maplibregl-ctrl.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib.maplibregl-compact {
   background: var(--panel-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: var(--shadow);
+  color: var(--color-text-sub);
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--color-text-sub);
+}
+
+.maplibregl-ctrl-scale {
+  background: var(--panel-bg);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-sub);
+}
+
+:root[data-theme="dark"] .maplibregl-ctrl-group button .maplibregl-ctrl-icon,
+:root[data-theme="dark"] .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+
+/* 現在地追跡中の青いアイコンは反転させない */
+:root[data-theme="dark"] .maplibregl-ctrl-group button.maplibregl-ctrl-geolocate-active .maplibregl-ctrl-icon,
+:root[data-theme="dark"] .maplibregl-ctrl-group button.maplibregl-ctrl-geolocate-active-error .maplibregl-ctrl-icon,
+:root[data-theme="dark"] .maplibregl-ctrl-group button.maplibregl-ctrl-geolocate-background .maplibregl-ctrl-icon {
+  filter: none;
+}
+
+:root[data-theme="dark"] .maplibregl-ctrl-geocoder,
+:root[data-theme="dark"] .maplibregl-ctrl-geocoder .suggestions {
+  background: var(--surface-solid);
   color: var(--color-text);
-  cursor: pointer;
+}
+
+:root[data-theme="dark"] .maplibregl-ctrl-geocoder--input {
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] .maplibregl-ctrl-geocoder .suggestions > li > a {
+  color: var(--color-text);
+}
+
+:root[data-theme="dark"] .maplibregl-ctrl-geocoder .suggestions > .active > a,
+:root[data-theme="dark"] .maplibregl-ctrl-geocoder .suggestions > li > a:hover {
+  background: var(--hover);
+}
+
+:root[data-theme="dark"] .maplibregl-ctrl-geocoder--icon {
+  fill: var(--color-text-sub);
 }
 
 /* ---- ポップアップ ---- */
 .maplibregl-popup-content {
+  background: var(--surface-solid);
+  color: var(--color-text);
   padding: 0;
   border-radius: 12px;
   overflow: hidden;
@@ -267,6 +349,27 @@ body,
   font-family: var(--font);
   width: 340px;
   max-width: 85vw;
+}
+
+/* 吹き出し（tip）の色をポップアップ本体（テーマで変わる）に合わせる */
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: var(--surface-solid);
+}
+
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: var(--surface-solid);
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--surface-solid);
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--surface-solid);
 }
 
 /* 吹き出し（tip）が接する角だけ丸みを消し、tip がポップアップに自然に繋がるようにする。
@@ -366,14 +469,14 @@ body,
 
 .popup-table th,
 .popup-table td {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border-strong);
   padding: 3px 6px;
   text-align: left;
   vertical-align: top;
 }
 
 .popup-table th {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--hover);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -393,7 +496,7 @@ body,
 
 .popup-link {
   font-size: 11.5px;
-  color: var(--color-injury);
+  color: var(--color-link);
   text-decoration: none;
 }
 
@@ -403,17 +506,39 @@ body,
 
 /* ---- モバイル ---- */
 @media (max-width: 640px) {
+  /* パネルは画面下部のシートにする（初期は畳んでヘッダだけ表示）。
+     事故のポップアップ（同じく下部シート, z-index:5）より背面に置き、開いた
+     ポップアップのリンクをパネルのヘッダが塞がないようにする。 */
   #panel {
-    width: calc(100% - 24px);
-    max-height: 78%;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: 62vh;
+    z-index: 4;
+    border-width: 1px 0 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* 畳んだパネルのヘッダ分だけ下端の地図コントロール（スケール・出典）を持ち上げる */
+  .maplibregl-ctrl-bottom-right,
+  .maplibregl-ctrl-bottom-left {
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
   }
 
   /* maplibre-gl-geocoder は 640px 未満で width:100% になり全幅化する。
-     左上のフィルタボタン(40px)と重なるため幅を制限する。 */
+     右上の他のコントロールと揃うよう幅を制限する。 */
   .maplibregl-ctrl-top-right .maplibregl-ctrl-geocoder {
     min-width: 0;
     width: 100%;
-    max-width: calc(100vw - 130px);
+    max-width: calc(100vw - 20px);
   }
 
   /* ポップアップをボトムシート化する。
