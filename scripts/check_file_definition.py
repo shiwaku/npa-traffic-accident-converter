@@ -12,13 +12,11 @@
 """
 import argparse
 import sys
-from pathlib import Path
 
 import openpyxl
 import pandas as pd
 
-ROOT = Path(__file__).parent.parent
-KNOWN_YEARS_WITH_XLSX = list(range(2022, 2025))
+from _common import KNOWN_YEARS, ROOT
 
 
 def get_xlsx_columns(xlsx_path, sheet='本票'):
@@ -99,9 +97,9 @@ def main():
     args = parser.parse_args()
 
     if args.all:
-        years = list(range(2019, 2025))
+        years = KNOWN_YEARS
     else:
-        years = args.year or [2024]
+        years = args.year or [KNOWN_YEARS[-1]]
 
     ok = True
     for year in years:

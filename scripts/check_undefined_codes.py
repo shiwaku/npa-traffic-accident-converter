@@ -12,12 +12,10 @@
 import argparse
 import csv
 import sys
-from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).parent.parent
-KNOWN_YEARS = list(range(2019, 2025))
+from _common import KNOWN_YEARS, ROOT
 
 # 元データ（警察庁CSV）に含まれる公式コード表外の値。
 # 各1件のみ出現しており、データ入力ミスと判断。変換結果は空欄になる。
@@ -164,7 +162,7 @@ def main():
     parser.add_argument('--all', action='store_true', help='全既知年チェック')
     args = parser.parse_args()
 
-    years = KNOWN_YEARS if args.all else (args.year or [2024])
+    years = KNOWN_YEARS if args.all else (args.year or [KNOWN_YEARS[-1]])
 
     ok = True
     for year in years:

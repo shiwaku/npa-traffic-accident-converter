@@ -18,10 +18,8 @@
 import argparse
 import subprocess
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
-KNOWN_YEARS = list(range(2019, 2025))
+from _common import KNOWN_YEARS, ROOT
 
 CHECKS = [
     # (番号, 説明, スクリプト名, 追加オプション取得関数)

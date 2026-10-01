@@ -17,6 +17,7 @@ import pandas as pd
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
+from converter import KNOWN_YEARS
 from converter.decode import decode
 from converter.convert import convert
 
@@ -133,7 +134,7 @@ def test_null_rates(df, year, errors):
 def test_spot_checks_from_output(df, year, errors):
     """出力DataFrameに特定ラベルが含まれているかをサンプルで確認。"""
     checks = {**SPOT_CHECKS}
-    if year == 2024:
+    if year >= 2024:
         checks.update(SPOT_CHECKS_2024)
     elif year in (2019, 2020, 2021):
         checks.update(SPOT_CHECKS_2019)
@@ -245,8 +246,8 @@ def run_tests(years, ref_dir=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='変換結果の正確性検証')
-    parser.add_argument('--years', type=int, nargs='+', default=list(range(2019, 2025)),
-                        help='検証する年（デフォルト: 2019-2024）')
+    parser.add_argument('--years', type=int, nargs='+', default=KNOWN_YEARS,
+                        help='検証する年（デフォルト: 既知の全年次）')
     parser.add_argument('--ref', type=str, default=None,
                         help='旧コンバーター出力CSVのディレクトリ（比較用）')
     args = parser.parse_args()

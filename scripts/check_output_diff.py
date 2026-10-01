@@ -19,14 +19,12 @@
 """
 import argparse
 import sys
-from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).parent.parent
+from _common import KNOWN_YEARS, ROOT
 REF_DIR = ROOT / 'reference'
 OUT_DIR = ROOT / 'output'
-KNOWN_YEARS = list(range(2019, 2025))
 
 # 意図的に旧出力と異なることが確認済みの差異
 # 形式: {year: [(column, old_value, new_value, reason), ...]}
@@ -177,7 +175,7 @@ def main():
         print_known_diffs()
         return
 
-    years = KNOWN_YEARS if args.all else (args.year or [2024])
+    years = KNOWN_YEARS if args.all else (args.year or [KNOWN_YEARS[-1]])
 
     ok = True
     for year in years:
