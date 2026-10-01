@@ -2,7 +2,7 @@
 
 警察庁が公開する[交通事故統計情報のオープンデータ](https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html)（本票CSV）をコード値から人間可読なラベルに変換し、緯度経度を10進数に変換するツールです。
 
-2019〜2024年（令和元〜6年）対応。2025年以降のデータ追加にも対応した設計になっています。
+2019〜2025年（令和元〜7年）対応。2026年以降のデータ追加にも対応した設計になっています。
 
 地図ビューワ: https://shiwaku.github.io/npa-traffic-accident-converter/
 
@@ -10,33 +10,34 @@
 
 ## 変換済みデータのダウンロード
 
-変換を自分で実行しなくても、生成済みデータを [Releases](../../releases/tag/data-v1) から取得できます。
+変換を自分で実行しなくても、生成済みデータを [Releases](../../releases/tag/data-v2) から取得できます（2019〜2024年のみの旧版は [data-v1](../../releases/tag/data-v1)）。
 
 | ファイル | 形式 | サイズ | 用途 |
 |---|---|---|---|
-| `honhyo_{2019..2024}_converted.csv.gz` | CSV(UTF-8) | 各 17〜22 MB | 単年の集計・分析 |
-| `honhyo_2019-2024_converted.csv.gz` | CSV(UTF-8) | 113 MB | 6年分マージ版（1,895,275件） |
-| `honhyo_2019-2024_converted.parquet` | GeoParquet | 122 MB | QGIS表示・分析 |
-| `honhyo_2019-2024_converted.pmtiles` | PMTiles | 620 MB | MapLibre等でのタイル配信 |
+| `honhyo_{2019..2025}_converted.csv.gz` | CSV(UTF-8) | 各 17〜22 MB | 単年の集計・分析 |
+| `honhyo_{2019..2025}_converted.parquet` | GeoParquet | 各 19〜25 MB | 単年のQGIS表示・分析 |
+| `honhyo_2019-2025_converted.csv.gz` | CSV(UTF-8) | 131 MB | 7年分マージ版（2,182,298件） |
+| `honhyo_2019-2025_converted.parquet` | GeoParquet | 143 MB | QGIS表示・分析 |
+| `honhyo_2019-2025_converted.pmtiles` | PMTiles | 699 MB | MapLibre等でのタイル配信 |
 | `SHA256SUMS.txt` | — | — | 整合性検証用 |
 
 ```bash
 # 全ファイル
-gh release download data-v1
+gh release download data-v2
 
 # 個別
-gh release download data-v1 -p 'honhyo_2024_converted.csv.gz'
+gh release download data-v2 -p 'honhyo_2025_converted.csv.gz'
 
 # 検証
 sha256sum -c SHA256SUMS.txt
 ```
 
-GeoJSON（マージ版6.1GB）は巨大なため配布対象外です。必要な場合は下記の手順で生成してください。
+GeoJSON（マージ版6.6GB）は巨大なため配布対象外です。必要な場合は下記の手順で生成してください。
 
 > [!IMPORTANT]
 > GitHub のリリースアセットは CORSヘッダを返さないため、ブラウザから直接PMTilesソースに指定すると遮断されます。Web地図で配信する場合は CORS 対応のホスト（S3 / Cloudflare R2 等）に置き直してください。
 
-収録件数・生成条件・既知の制約は[リリースノート](../../releases/tag/data-v1)に記載しています。
+収録件数・生成条件・既知の制約は[リリースノート](../../releases/tag/data-v2)に記載しています。
 
 ---
 
@@ -55,12 +56,12 @@ pip install -e .
 ### 1. データのダウンロード
 
 ```bash
-# 全年次（2019〜2024）をダウンロード
+# 全年次（2019〜2025）をダウンロード
 ./download.sh
 
 # 特定年次のみ
-./download.sh 2024
-./download.sh 2022 2023 2024
+./download.sh 2025
+./download.sh 2023 2024 2025
 ```
 
 `data/{year}/` に本票CSV・ファイル定義書・コード表xlsxが保存されます。
@@ -69,12 +70,12 @@ pip install -e .
 
 ```bash
 # 単年
-python -m converter --year 2024
+python -m converter --year 2025
 
 # 複数年
-python -m converter --year 2022 2023 2024
+python -m converter --year 2023 2024 2025
 
-# 全既知年（2019〜2024）
+# 全既知年（2019〜2025）
 python -m converter --all
 
 # 全年次を1ファイルにマージ
@@ -92,9 +93,9 @@ python -m converter --all --merge
 ./export_geo.sh
 ```
 
-出力先: `output/honhyo_2019-2024_converted.{parquet,geojson,pmtiles}`
+出力先: `output/honhyo_2019-2025_converted.{parquet,geojson,pmtiles}`
 
-PMTiles の source-layer 名は `honhyo_20192024_converted`（tippecanoe がハイフンを除去した名前）、ズームは 0–14 です。
+PMTiles の source-layer 名は `honhyo_20192025_converted`（tippecanoe がハイフンを除去した名前）、ズームは 0–14 です。
 
 ---
 
@@ -207,13 +208,14 @@ PMTiles の source-layer 名は `honhyo_20192024_converted`（tippecanoe がハ�
 │       ├── y2019_2021.py   # 2019〜2021年固有の差分
 │       ├── y2022.py        # 2022年固有の差分
 │       ├── y2023.py        # 2023年固有の差分
-│       └── y2024.py        # 2024年固有の差分
+│       └── y2024.py        # 2024年固有の差分（2025年も共用）
 ├── code_tables/            # CSV形式のコード表
 │   ├── common/             # 全年次共通（都道府県など）
 │   ├── 2019-2021/          # 警察署等・高速路線（2019年スナップショット）
 │   ├── 2022/               # 年次別の警察署等・高速路線・トンネル番号
 │   ├── 2023/
-│   └── 2024/
+│   ├── 2024/
+│   └── 2025/
 ├── scripts/                # チェック・ユーティリティスクリプト
 │   ├── check_codetable_vs_official.py  # ①コード表照合
 │   ├── check_output_diff.py            # ②旧リポジトリとの比較
@@ -222,7 +224,8 @@ PMTiles の source-layer 名は `honhyo_20192024_converted`（tippecanoe がハ�
 │   ├── check_file_definition.py        # ⑤ファイル定義書との列確認
 │   ├── run_all_checks.py               # ①〜⑤まとめ実行
 │   ├── generate_reference.py           # ②用参照CSV生成
-│   └── check_codebook_diff.py          # 年次間コード表差分
+│   ├── check_codebook_diff.py          # 年次間コード表差分
+│   └── generate_code_tables.py         # 公式xlsx→年次別コード表CSV生成
 ├── data/                   # ダウンロードデータ（gitignore）
 ├── output/                 # 変換済みCSV（gitignore）
 ├── download.sh             # データダウンロードスクリプト
@@ -238,7 +241,7 @@ PMTiles の source-layer 名は `honhyo_20192024_converted`（tippecanoe がハ�
 
 ```bash
 # 全チェックをまとめて実行
-python scripts/run_all_checks.py --year 2024
+python scripts/run_all_checks.py --year 2025
 
 # 全年次
 python scripts/run_all_checks.py --all
@@ -254,6 +257,7 @@ python scripts/run_all_checks.py --all
 | 2022 | `codes/y2022.py` | `code_tables/2022/` |
 | 2023 | `codes/y2023.py` | `code_tables/2023/` |
 | 2024 | `codes/y2024.py` | `code_tables/2024/` |
+| 2025 | `codes/y2024.py`（差分なし） | `code_tables/2025/` |
 
 警察庁が公開するコード表は年次によって内容が異なります。このコンバーターでは、年次ごとに異なるコード辞書（`converter/codes/yYYYY.py`）とCSVファイル（`code_tables/{year}/`）を使い分けています。
 
@@ -281,25 +285,34 @@ python scripts/run_all_checks.py --all
 | `36` | `二輪車－原付自転車` | `二輪車－一般原付自転車`（表現変更） |
 | `43` | （なし） | `特定小型原付自転車`（新規追加・電動キックボード等） |
 
+#### 2025年（令和7年）の変更
+入力CSVの列構成とコード値は2024年と同じです。変わったのは警察署等・高速路線・トンネル番号のコード表だけです：
+
+| 区分 | 変更内容 |
+|------|---------|
+| 警察署等 | 新設2署（北海道（釧路方面）交通課、宮城 栗原）、名称変更5署（龍ヶ崎→竜ケ崎、韮崎→甲斐、朝来→南但馬、湯浅→有田湯浅、伊佐→伊佐湧水） |
+| 高速路線 | 26路線追加（倶知安余市道路、小名浜道路、山陰道の島根区間）、高知南国道路→高知東部自動車道 |
+| トンネル番号 | 30件追加 |
+
 #### 警察署等コード・高速路線コード（毎年更新）
-警察署の統廃合や高速道路の新規開通に伴い、警察署等コード・高速路線コードは毎年更新されます。このため `code_tables/2022/`・`2023/`・`2024/` はそれぞれ異なるCSVファイルを使用しています。
+警察署の統廃合や高速道路の新規開通に伴い、警察署等コード・高速路線コードは毎年更新されます。このため `code_tables/2022/`〜`2025/` はそれぞれ異なるCSVファイルを使用しています。2025年分は `scripts/generate_code_tables.py` で公式コード表xlsxから生成しています。
 
 #### 2019〜2021年の警察署等・高速路線について
 2019〜2021年用のCSV（`code_tables/2019-2021/`）は2019年版のみ収録されています。2020年・2021年に新設・変更された警察署や高速路線は、このCSVに含まれていません。該当するレコードは警察署等名・路線名が空欄で出力されます（将来の改善課題）。
 
 #### 2024年のトンネル番号について
-2024年の公式コード表（xlsx）にはトンネルの追加・変更が記載されています。ただし、変換に使用するトンネル番号CSV（`code_tables/2024/`）は2023年版から変更していないため、2024年に新設・変更されたトンネルについてはトンネル名が正確に出力されない場合があります。
+`code_tables/2024/` のトンネル番号CSVは2023年版のままで、2024年の公式コード表（xlsx）とは一部異なります。ただしトンネル番号は高速票の項目で、本票の変換では使用していないため、本票の変換結果には影響しません。
 
 ---
 
-## 2025年データの追加
+## 新年次データの追加
 
-2025年のデータが公開されたら、[ADDING_NEW_YEAR.md](ADDING_NEW_YEAR.md) の手順に従ってください。
+2026年以降のデータが公開されたら、[ADDING_NEW_YEAR.md](ADDING_NEW_YEAR.md) の手順に従ってください。
 
 ---
 
 ## 出典・ライセンス
 
-変換済みデータは、警察庁「[交通事故統計情報のオープンデータ](https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html)」（本票CSV、2019〜2024年）を**加工して作成**したものです。元データの利用条件は警察庁の[利用規約](https://www.npa.go.jp/rules/index.html)（公共データ利用規約 第1.0版／PDL1.0 準拠）に従います。利用時は出典の表示および編集・加工した旨の表示が必要です。あたかも国が作成したかのような態様での公表・利用はできません。
+変換済みデータは、警察庁「[交通事故統計情報のオープンデータ](https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html)」（本票CSV、2019〜2025年）を**加工して作成**したものです。元データの利用条件は警察庁の[利用規約](https://www.npa.go.jp/rules/index.html)（公共データ利用規約 第1.0版／PDL1.0 準拠）に従います。利用時は出典の表示および編集・加工した旨の表示が必要です。あたかも国が作成したかのような態様での公表・利用はできません。
 
 コンバーターのソースコードは MIT License（[LICENSE](LICENSE)）。

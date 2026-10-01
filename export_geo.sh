@@ -3,11 +3,11 @@
 #
 # 使い方:
 #   ./export_geo.sh                                    # デフォルト入力を使用
-#   ./export_geo.sh output/honhyo_2019-2024_converted.csv
+#   ./export_geo.sh output/honhyo_2019-2025_converted.csv
 
 set -e
 
-INPUT_CSV="${1:-output/honhyo_2019-2024_converted.csv}"
+INPUT_CSV="${1:-output/honhyo_2019-2025_converted.csv}"
 BASENAME="${INPUT_CSV%.csv}"
 
 if [ ! -f "$INPUT_CSV" ]; then

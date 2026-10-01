@@ -38,7 +38,7 @@ VITE_PMTILES_URL=https://example.com/path/honhyo_2019-2025_converted.pmtiles npm
 ```
 
 `dist/` を静的ホスティング（GitHub Pages 等）に配置する。
-PMTiles 本体（約650MB）は Range リクエスト対応のストレージ（Cloudflare R2、レンタルサーバー等）に別途アップロードし、その URL を `VITE_PMTILES_URL` に指定する。
+PMTiles 本体（約700MB）は Range リクエスト対応のストレージ（Cloudflare R2、レンタルサーバー等）に別途アップロードし、その URL を `VITE_PMTILES_URL` に指定する。
 
 - ソースレイヤ名は `honhyo_20192025_converted`（tippecanoe がファイル名から自動命名）。
   PMTiles を作り直してファイル名が変わった場合は `src/main.ts` の `SOURCE_LAYER` を更新すること。

@@ -1,80 +1,103 @@
 # 新年次データの追加手順
 
-2025年など新しい年次のデータが公開されたときの追加手順です。
+新しい年次のデータが公開されたときの追加手順です。以下は2026年を追加する場合の例です（2025年はこの手順で追加済み）。
 
 ---
 
-## 例：2025年データを追加する場合
+## 例：2026年データを追加する場合
 
 ### 1. データのダウンロード
 
-`download.sh` の末尾付近にある以下のコメント行を有効にします：
+警察庁の年次ページ（`https://www.npa.go.jp/publications/statistics/koutsuu/opendata/2026/opendata_2026.html`）でファイル名を確認し、`download.sh` の `YEAR_FILES` に追記します：
 
 ```bash
-# YEAR_FILES[2025]="honhyo_2025.csv hojuhyo_2025.csv kosokuhyo_2025.csv fileteigisyo_2025.pdf fileteigisyo_2025.xlsx codebook_2025.pdf codebook_2025.xlsx"
+YEAR_FILES[2026]="honhyo_2026.csv hojuhyo_2026.csv kosokuhyo_2026.csv fileteigisyo_2026.pdf fileteigisyo_2026.xlsx codebook_2026.pdf codebook_2026.xlsx"
 ```
 
-その後、2025年分のみダウンロード：
+その後、2026年分のみダウンロード：
 
 ```bash
-./download.sh 2025
+./download.sh 2026
 ```
 
-### 2. コード表の差分チェック
+### 2. 既知年次への追加
 
-前年（2024年）との差分を自動チェックします：
+`converter/__init__.py` の `KNOWN_YEARS` を更新します。CLI の `--all` と全チェックスクリプトはここを参照します：
+
+```python
+KNOWN_YEARS = list(range(2019, 2027))
+```
+
+### 3. コード表・ファイル定義書の差分チェック
+
+前年（2025年）との差分を確認します：
 
 ```bash
-python scripts/check_codebook_diff.py --base 2024 --new 2025
+python scripts/check_codebook_diff.py --base 2025 --new 2026
+python scripts/check_file_definition.py --year 2025 2026
 ```
 
-出力例：
+`check_codebook_diff.py` はシートごとにコード（警察署等・路線・トンネルは都道府県などとの複合キー）を比較し、追加・削除・名称変更・説明文の変更を出力します：
+
 ```
-[変更あり] 当事者種別
-  + 追加  XX: 新しい種別名
-  ~ 変更  36: '二輪車－一般原付自転車' → '...'
+[変更あり] 当事者種別  (32件 → 33件)
+  + 追加                43: 特定小型原付自転車 / ...
+  ~ 変更                36: '二輪車－原付自転車 / ...' → '二輪車－一般原付自転車 / ...'
+
+[変更あり] 警察署等  (1207件 → 1209件)
+  + 追加            22-127: 宮城 / 栗原
+  ~ 変更            47-104: '山梨 / 韮崎' → '山梨 / 甲斐'
 ```
 
-差分がなければ追加作業は不要です（前年の設定が自動的に使用されます）。
+### 4. Pythonコードの差分対応（コード値に差分がある場合のみ）
 
-### 3. Pythonコードの差分対応（差分がある場合のみ）
-
-差分があった場合は `converter/codes/y2025.py` を作成します：
+当事者種別などコード値の差分があった場合は `converter/codes/y2026.py` を作成し、`converter/codes/__init__.py` の `get_codes()` に分岐を追加します：
 
 ```bash
-cp converter/codes/y2024.py converter/codes/y2025.py
+cp converter/codes/y2024.py converter/codes/y2026.py
 ```
 
-`y2025.py` を開き、手順2で確認した差分のみ修正します。
+`y2026.py` を開き、手順3で確認した差分のみ修正します。
 変更のない辞書はそのまま残してください（`common.py` からの継承になります）。
+差分がなければ `get_codes()` の else 節（y2024）がそのまま使われるため、コード変更は不要です。
 
-### 4. コード表CSVの追加（差分がある場合のみ）
+### 5. コード表CSVの生成
 
-警察署等コード・高速路線コード・トンネル番号に変更があった場合：
+警察署等・高速路線・トンネル番号はほぼ毎年変わる（署の新設・名称変更、道路の開通）ため、公式xlsxから年次別CSVを生成します：
 
 ```bash
-mkdir -p code_tables/2025
+python scripts/generate_code_tables.py --year 2026
 ```
 
-対応するCSVファイルを `code_tables/2025/` に配置します：
+`code_tables/2026/` に以下が生成されます：
 - `3_koudohyou_keisatusyotoukoudo.csv`（警察署等）
 - `9_koudohyou_rosen_kousokujidousyasenyou.csv`（高速路線）
 - `53_koudohyou_tonnerubangou.csv`（トンネル番号）
 
-CSVが存在しない場合は前年（`code_tables/2024/`）が自動フォールバックとして使用されます。
+CSVを置かない場合は最新既知年のディレクトリが自動フォールバックとして使用されますが、新設署・名称変更が反映されないため生成を推奨します。
 
-### 5. 変換の実行
+### 6. 変換の実行
 
 ```bash
-python -m converter --year 2025
+python -m converter --year 2026
 ```
 
-### 6. 動作確認
+### 7. 動作確認
 
-出力ファイル `output/honhyo_2025_converted.csv` を確認します：
-- 行数が元データ（`data/2025/honhyo_2025.csv`）と一致しているか
+```bash
+python scripts/run_all_checks.py --year 2026
+```
+
+①（公式コード表との一致）・③（件数）・④（未定義コード）・⑤（列構成）がすべて PASS することを確認します。あわせて出力ファイル `output/honhyo_2026_converted.csv` を確認します：
 - 都道府県名・警察署等名が正しく変換されているか
 - 緯度・経度（10進数）が日本国内の値になっているか
+
+### 8. ビューワ・ドキュメントの更新
+
+- `viewer/src/filters.ts`・`viewer/src/main.ts`・`viewer/index.html`・`viewer/vite.config.ts` の年次リストと表記
+- マージ版のファイル名（`honhyo_2019-2026_converted.*`）と PMTiles の source-layer 名（`honhyo_20192026_converted`）
+- `.github/workflows/deploy-viewer.yml` の `VITE_PMTILES_URL`（PMTiles を R2 にアップロードしてから切り替える）
+- README・CLAUDE.md の対応年次
 
 ---
 

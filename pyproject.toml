@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "npa-traffic-accident-converter"
 version = "1.0.0"
-description = "警察庁交通事故統計オープンデータ コンバーター（2019〜2024年対応）"
+description = "警察庁交通事故統計オープンデータ コンバーター（2019〜2025年対応）"
 requires-python = ">=3.10"
 dependencies = ["pandas>=2.0"]
 
