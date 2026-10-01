@@ -3,6 +3,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from converter import KNOWN_YEARS
 from converter.decode import decode
 from converter.convert import convert
 from converter.merge import merge
@@ -11,7 +12,6 @@ ROOT = Path(__file__).parent.parent
 DATA_DIR = ROOT / 'data'
 OUTPUT_DIR = ROOT / 'output'
 
-KNOWN_YEARS = list(range(2019, 2025))  # 既知の年次（--allで使用）
 MIN_YEAR = 2019
 
 

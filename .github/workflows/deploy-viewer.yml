@@ -33,7 +33,7 @@ jobs:
       - run: npm run build
         working-directory: viewer
         env:
-          VITE_PMTILES_URL: https://shi-works.com/pmtiles/npa-traffic-accident/honhyo_2019-2024_converted.pmtiles
+          VITE_PMTILES_URL: https://shi-works.com/pmtiles/npa-traffic-accident/honhyo_2019-2025_converted.pmtiles
       - uses: actions/upload-pages-artifact@v3
         with:
           path: viewer/dist

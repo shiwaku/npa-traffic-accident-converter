@@ -10,8 +10,10 @@ import MaplibreGeocoder, {
 import "@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css";
 import { MaplibreTerradrawControl } from "@watergis/maplibre-gl-terradraw";
 import "@watergis/maplibre-gl-terradraw/dist/maplibre-gl-terradraw.css";
+import { applyBasemapTheme, loadBasemapStyle } from "./basemap";
 import { buildFilter, type FilterState } from "./filters";
 import { buildPopupHtml } from "./popup";
+import { applyThemeAttr, initialTheme, saveTheme, type Theme } from "./theme";
 import "./style.css";
 
 // Vite + MapLibre GL CSP ワーカーの URL を明示的に指定
@@ -21,18 +23,22 @@ setWorkerUrl(maplibreWorkerUrl);
 // 本番デプロイ時は VITE_PMTILES_URL でホスト先 URL を指定する。
 const PMTILES_URL: string =
   import.meta.env.VITE_PMTILES_URL ??
-  `${import.meta.env.BASE_URL}data/honhyo_2019-2024_converted.pmtiles`;
-const SOURCE_LAYER = "honhyo_20192024_converted";
+  `${import.meta.env.BASE_URL}data/honhyo_2019-2025_converted.pmtiles`;
+const SOURCE_LAYER = "honhyo_20192025_converted";
 
 const COLOR_FATAL = "#e8003a";
 const COLOR_INJURY = "#2563eb";
+
+// テーマ（ライト / ダーク）。地図より先に <html data-theme> を設定してパネルのちらつきを防ぐ
+let theme: Theme = initialTheme();
+applyThemeAttr(theme);
 
 const protocol = new Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile.bind(protocol));
 
 const map = new maplibregl.Map({
   container: "map",
-  style: `${import.meta.env.BASE_URL}pale.json`,
+  style: await loadBasemapStyle(theme),
   center: [139.6917, 35.6895],
   zoom: 9,
   minZoom: 4,
@@ -127,7 +133,7 @@ map.addControl(
 // ---- フィルタ状態 ----
 const filterState: FilterState = {
   naiyou: new Set(["死亡事故", "負傷事故"]),
-  years: new Set(["2019", "2020", "2021", "2022", "2023", "2024"]),
+  years: new Set(["2019", "2020", "2021", "2022", "2023", "2024", "2025"]),
   tyuya: new Set(["昼", "夜"]),
   party: "",
   age: "",
@@ -170,7 +176,7 @@ map.on("load", () => {
     type: "vector",
     url: `pmtiles://${PMTILES_URL}`,
     attribution:
-      '<a href="https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html">警察庁 交通事故統計情報のオープンデータ（2019〜2024年）を加工して作成</a>',
+      '<a href="https://www.npa.go.jp/publications/statistics/koutsuu/opendata/index_opendata.html">警察庁 交通事故統計情報のオープンデータ（2019〜2025年）を加工して作成</a>',
   });
 
   // ヒートマップ（初期は非表示）
@@ -321,8 +327,17 @@ map.on("load", () => {
     },
   });
 
+  applyDataTheme();
   applyFilter();
 });
+
+// 事故レイヤーのうちテーマで変える色（ダークでは点の縁取り・ラベルの縁を暗色に）
+function applyDataTheme(): void {
+  if (!map.getLayer("jiko-points")) return;
+  const dark = theme === "dark";
+  map.setPaintProperty("jiko-points", "circle-stroke-color", dark ? "#14161a" : "#ffffff");
+  map.setPaintProperty("jiko-labels", "text-halo-color", dark ? "rgba(0, 0, 0, 0.85)" : "#ffffff");
+}
 
 // ---- 選択ハイライト ----
 const EMPTY_FC: GeoJSON.FeatureCollection = {
@@ -489,14 +504,32 @@ map.on("idle", () => {
   statsEl.textContent = `画面内: ${seen.size.toLocaleString()} 件（描画済みポイント・目安）`;
 });
 
-// パネル開閉（狭い画面では初期状態を閉じる）
+// テーマ切替
+const themeBtn = document.getElementById("theme-btn") as HTMLButtonElement;
+const renderThemeBtn = (): void => {
+  themeBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+};
+themeBtn.addEventListener("click", () => {
+  theme = theme === "dark" ? "light" : "dark";
+  applyThemeAttr(theme);
+  saveTheme(theme);
+  renderThemeBtn();
+  applyBasemapTheme(map, theme);
+  applyDataTheme();
+});
+renderThemeBtn();
+
+// パネル開閉（畳むとヘッダだけ残す。狭い画面では初期状態を畳む）
 const panel = document.getElementById("panel")!;
+const collapseBtn = document.getElementById("collapse-btn") as HTMLButtonElement;
+const renderCollapseBtn = (): void => {
+  collapseBtn.textContent = panel.classList.contains("collapsed") ? "▾" : "▴";
+};
 if (window.matchMedia("(max-width: 640px)").matches) {
-  panel.classList.add("closed");
+  panel.classList.add("collapsed");
 }
-document.getElementById("panel-toggle")!.addEventListener("click", () => {
-  panel.classList.toggle("closed");
+collapseBtn.addEventListener("click", () => {
+  panel.classList.toggle("collapsed");
+  renderCollapseBtn();
 });
-document.getElementById("panel-close")!.addEventListener("click", () => {
-  panel.classList.add("closed");
-});
+renderCollapseBtn();

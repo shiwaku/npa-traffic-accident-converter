@@ -11,13 +11,11 @@
 """
 import argparse
 import sys
-from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).parent.parent
+from _common import KNOWN_YEARS, ROOT
 SKIP_RATE_WARN = 0.001  # 0.1%超でWARN
-KNOWN_YEARS = list(range(2019, 2025))
 
 
 def count_csv_rows(path, encoding='cp932'):
@@ -61,7 +59,7 @@ def main():
     parser.add_argument('--all', action='store_true', help='全既知年チェック')
     args = parser.parse_args()
 
-    years = KNOWN_YEARS if args.all else (args.year or [2024])
+    years = KNOWN_YEARS if args.all else (args.year or [KNOWN_YEARS[-1]])
 
     ok = True
     for year in years:

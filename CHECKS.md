@@ -22,7 +22,7 @@
 python scripts/check_codetable_vs_official.py [-h] [--year YEAR [YEAR ...]] [--all]
 
   --year YEAR [YEAR ...]  チェックする年を指定（複数可）
-  --all                   2022〜2024の全年次をチェック
+  --all                   コード表xlsxのある全年次（2022〜2025）をチェック
 ```
 
 **実行例**
@@ -75,7 +75,7 @@ python scripts/check_output_diff.py [-h] [--year YEAR [YEAR ...]] [--all]
                                     [--verbose] [--known-diffs] [--list-known]
 
   --year YEAR [YEAR ...]  チェックする年を指定（複数可）
-  --all                   全既知年（2019〜2024）をチェック
+  --all                   全既知年（2019〜2025）をチェック
   --verbose               差異のある行のサンプル値を表示
   --known-diffs           意図的差異（コード表修正済み）を除外してチェック
   --list-known            登録済みの意図的差異一覧を表示して終了
@@ -144,7 +144,7 @@ python scripts/check_output_diff.py --list-known
 python scripts/check_record_count.py [-h] [--year YEAR [YEAR ...]] [--all]
 
   --year YEAR [YEAR ...]  チェックする年を指定（複数可）
-  --all                   全既知年（2019〜2024）をチェック
+  --all                   全既知年（2019〜2025）をチェック
 ```
 
 **実行例**
@@ -171,7 +171,7 @@ python scripts/check_record_count.py --all
 python scripts/check_undefined_codes.py [-h] [--year YEAR [YEAR ...]] [--all]
 
   --year YEAR [YEAR ...]  チェックする年を指定（複数可）
-  --all                   全既知年（2019〜2024）をチェック
+  --all                   全既知年（2019〜2025）をチェック
 ```
 
 **実行例**
@@ -231,7 +231,7 @@ python scripts/run_all_checks.py [-h] [--year YEAR [YEAR ...]] [--all]
                                  [--with-diff] [--known-diffs]
 
   --year YEAR [YEAR ...]  チェックする年を指定（複数可）
-  --all                   全既知年（2019〜2024）をチェック
+  --all                   全既知年（2019〜2025）をチェック
   --with-diff             ②旧リポジトリとの比較も実行（参照CSV要準備）
   --known-diffs           ②で既知の意図的差異を除外してチェック
 ```
@@ -254,12 +254,13 @@ python scripts/run_all_checks.py --all
 
 ---
 
-## 新年次（例: 2025年）追加時のチェック手順
+## 新年次（例: 2026年）追加時のチェック手順
 
-1. `./download.sh 2025` でデータ・コード表をダウンロード
-2. `python scripts/check_codebook_diff.py --base 2024 --new 2025` でコード表差分を確認
-3. 差分があれば `converter/codes/y2025.py` を作成
-4. `python -m converter --year 2025` で変換
-5. `python scripts/run_all_checks.py --year 2025` で全チェック
+1. `./download.sh 2026` でデータ・コード表をダウンロードし、`converter/__init__.py` の `KNOWN_YEARS` に追加
+2. `python scripts/check_codebook_diff.py --base 2025 --new 2026` でコード表差分を確認
+3. コード値に差分があれば `converter/codes/y2026.py` を作成
+4. `python scripts/generate_code_tables.py --year 2026` で警察署等・路線・トンネルのCSVを生成
+5. `python -m converter --year 2026` で変換
+6. `python scripts/run_all_checks.py --year 2026` で全チェック
 
 詳細は [ADDING_NEW_YEAR.md](ADDING_NEW_YEAR.md) を参照。

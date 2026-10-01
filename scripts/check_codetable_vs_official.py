@@ -13,11 +13,10 @@ import argparse
 import csv
 import re
 import sys
-from pathlib import Path
 
 import openpyxl
 
-ROOT = Path(__file__).parent.parent
+from _common import KNOWN_YEARS, KNOWN_YEARS_WITH_XLSX, ROOT
 CODE_PATTERN = re.compile(r'^[0-9A-Za-z]{1,6}$')
 
 
@@ -179,11 +178,7 @@ DICT_TO_SHEET = [
 ]
 
 # xlsxにあるが変換用辞書に不要なキー（複合コードの片方など）
-XLSX_ONLY_ALLOWED = {
-    # 車道幅員: xlsx は '12,14'→1ラベルのように複合コードを1行で表現。
-    # 変換データでは '12','13','16' は実際には出現せず、'14','17','18' のみ使用。
-    'SYADOUHUKUIN': {'12', '13', '16'},
-}
+XLSX_ONLY_ALLOWED = {}
 
 # xlsx側で「00: 対象外当事者」などが存在しない場合がある（変換用独自エントリ）
 DICT_ONLY_ALLOWED = {
@@ -204,6 +199,9 @@ DICT_ONLY_ALLOWED = {
     'DOUROKEIJYOU':             {'00'},
     'SINGOUKI':                 set(),
     'NENREI':                   {'00'},
+    # 車道幅員: 2022年xlsxは '12,14' のような複合コード表記で 12/13/16 を含むが、
+    # 2023年以降のxlsxからは削除された。2022年データには出現するため辞書に残している。
+    'SYADOUHUKUIN':             {'12', '13', '16'},
 }
 
 
@@ -267,10 +265,10 @@ def check_year(year):
 def main():
     parser = argparse.ArgumentParser(description='①チェック: 公式コード表(xlsx) vs 変換用コード表')
     parser.add_argument('--year', type=int, nargs='+', help='対象年（例: 2022 2023 2024）')
-    parser.add_argument('--all', action='store_true', help='2022〜2024すべてチェック')
+    parser.add_argument('--all', action='store_true', help='コード表xlsxのある全年次（2022〜）をチェック')
     args = parser.parse_args()
 
-    years = list(range(2022, 2025)) if args.all else (args.year or [2024])
+    years = KNOWN_YEARS_WITH_XLSX if args.all else (args.year or [KNOWN_YEARS[-1]])
 
     all_errors = []
     for year in years:

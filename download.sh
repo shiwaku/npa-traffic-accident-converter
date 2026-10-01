@@ -17,8 +17,7 @@ YEAR_FILES[2021]="honhyo_2021.csv hojuhyo_2021.csv kosokuhyo_2021.csv fileteigis
 YEAR_FILES[2022]="honhyo_2022.csv hojuhyo_2022.csv kosokuhyo_2022.csv fileteigisyo_2022.pdf fileteigisyo_2022.xlsx codebook_2022.pdf codebook_2022.xlsx"
 YEAR_FILES[2023]="honhyo_2023.csv hojuhyo_2023.csv kosokuhyo_2023.csv fileteigisyo_2023.pdf fileteigisyo_2023.xlsx codebook_2023.pdf codebook_2023.xlsx"
 YEAR_FILES[2024]="honhyo_2024.csv hojuhyo_2024.csv kosokuhyo_2024.csv fileteigisyo_2024.pdf fileteigisyo_2024.xlsx codebook_2024.pdf codebook_2024.xlsx"
-# 2025年追加時はここに追記:
-# YEAR_FILES[2025]="honhyo_2025.csv hojuhyo_2025.csv kosokuhyo_2025.csv fileteigisyo_2025.pdf fileteigisyo_2025.xlsx codebook_2025.pdf codebook_2025.xlsx"
+YEAR_FILES[2025]="honhyo_2025.csv hojuhyo_2025.csv kosokuhyo_2025.csv fileteigisyo_2025.pdf fileteigisyo_2025.xlsx codebook_2025.pdf codebook_2025.xlsx"
 
 mkdir -p "$DATA_DIR"
 
